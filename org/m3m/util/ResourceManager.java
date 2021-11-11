@@ -1,4 +1,4 @@
-package org.m3m.papermaze;
+package org.m3m.util;
 
 import java.awt.image.BufferedImage;
 
@@ -35,6 +35,7 @@ import org.xml.sax.SAXException;
 public class ResourceManager {
 
 	private static final String RESOURCE_MANAGER_PROPERTIES = "src/main/resources/ResourceManager.xml";
+	private static boolean CASH_USE;
 	private static int CASH_SIZE, CASH_MAX_USES, CASH_MIN_KEEP_TIME, CASH_QUITE_OLD_TIME;
 	private static float CASH_CLEAR_PERCENT;
 	
@@ -43,6 +44,9 @@ public class ResourceManager {
 	private static List<String> bufferList;
 	
 	private static void removeLessUsed() {
+		if (ResourceManager.CASH_USE == false)
+			return;
+		
 		if (ResourceManager.CASH_SIZE == 0)
 			ResourceManager.initialize();
 		
@@ -59,6 +63,7 @@ public class ResourceManager {
 			if (res.lastUse < t)
 				old.add(key);
 		}
+		
 		if (!old.isEmpty()) {
 			old.sort(sorter);
 			int countToRemove = (int) (old.size() * CASH_CLEAR_PERCENT + 0.99f);
@@ -104,11 +109,16 @@ public class ResourceManager {
 			throw new IllegalStateException(e);
 		}
 
-		ResourceManager.CASH_SIZE			= Integer.parseInt(properties.get("ResourceManager.properties.cash.size"));
-		ResourceManager.CASH_MAX_USES		= Integer.parseInt(properties.get("ResourceManager.properties.cash.max_uses"));
-		ResourceManager.CASH_MIN_KEEP_TIME	= Integer.parseInt(properties.get("ResourceManager.properties.cash.min_keep_time"));
-		ResourceManager.CASH_QUITE_OLD_TIME = Integer.parseInt(properties.get("ResourceManager.properties.cash.quite_old_time"));
-		ResourceManager.CASH_CLEAR_PERCENT	= Float.parseFloat(properties.get("ResourceManager.properties.cash.clear_percent"));
+		try {
+			ResourceManager.CASH_USE			= Boolean.parseBoolean(properties.get("ResourceManager.properties.cash.use"));
+			ResourceManager.CASH_SIZE			= Integer.parseInt(properties.get("ResourceManager.properties.cash.size"));
+			ResourceManager.CASH_MAX_USES		= Integer.parseInt(properties.get("ResourceManager.properties.cash.max_uses"));
+			ResourceManager.CASH_MIN_KEEP_TIME	= Integer.parseInt(properties.get("ResourceManager.properties.cash.min_keep_time"));
+			ResourceManager.CASH_QUITE_OLD_TIME = Integer.parseInt(properties.get("ResourceManager.properties.cash.quite_old_time"));
+			ResourceManager.CASH_CLEAR_PERCENT	= Float.parseFloat(properties.get("ResourceManager.properties.cash.clear_percent"));
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 	
 	private static class Resource<T> {
@@ -239,14 +249,14 @@ public class ResourceManager {
 	       byte[] b = computeChecksum(filename);
 	       String result = "";
 
-	       for (int i=0; i < b.length; i++)
+	       for (int i = 0; i < b.length; i++)
 	           result += Integer.toString((b[i] & 0xff) + 0x100, 16).substring(1);
 	       return result;
 	   }
 
 	public static ClassLoader getClassLoader() {
 		// TODO Auto-generated method stub
-		return null;
+		return ClassLoader.getSystemClassLoader();
 	}
 	
 
